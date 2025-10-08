@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Seeder;
 use App\Models\Matiere;
-use Illuminate\Support\Facades\DB;
 
 class MatiereSeeder extends Seeder
 {
@@ -22,9 +21,9 @@ class MatiereSeeder extends Seeder
         // 2. Vider la table 'matieres' pour un nouvel ensemencement propre
         Matiere::truncate();
         
-        // 3. Définition des matières (AJOUT DE CONDUITE)
+            
+        // 3. Définition des matières (🚨 CONDUITE DOIT ÊTRE RETIRÉE)
         $matieres = [
-            // Matières principales
             ['nom' => 'Mathématiques', 'coefficient' => 4],
             ['nom' => 'Français', 'coefficient' => 2],
             ['nom' => 'Anglais', 'coefficient' => 2],
@@ -34,13 +33,10 @@ class MatiereSeeder extends Seeder
             ['nom' => 'Informatique', 'coefficient' => 1],
             ['nom' => 'Philosophie', 'coefficient' => 2],
             ['nom' => 'EPS', 'coefficient' => 1],
-
-            // Matière spéciale pour la fiche de CONDUITE
-            // 🚨 Il est essentiel que cette matière soit là pour les fiches de conduite
-            ['nom' => 'CONDUITE', 'coefficient' => 1], 
+            
+            // 🚨 Supprimez cette ligne : ['nom' => 'CONDUITE', 'coefficient' => 1], 
         ];
-
-        // 4. Insertion des données
+                // 4. Insertion des données
         foreach ($matieres as $matiere) {
             Matiere::create($matiere);
         }
