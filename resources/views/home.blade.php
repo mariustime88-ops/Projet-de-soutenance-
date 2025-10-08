@@ -438,7 +438,7 @@
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <a class="nav-link d-flex align-items-center gap-2" href="{{ route('emploi_du_temps.index') }}">
                     <svg class="bi" aria-hidden="true">
                       <use xlink:href="#file-earmark-text"></use>
                     </svg>
@@ -446,26 +446,18 @@
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <a class="nav-link d-flex align-items-center gap-2" href="{{ route('examens.index') }}">
                     <svg class="bi" aria-hidden="true">
                       <use xlink:href="#file-earmark-text"></use>
                     </svg>
-                Concernant les candidats
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <svg class="bi" aria-hidden="true">
-                      <use xlink:href="#file-earmark-text"></use>
-                    </svg>
-                    Frais des examens
+                    Infos et Frais des examens 
                   </a>
                 </li>
               </ul>
               <hr class="my-3" />
               <ul class="nav flex-column mb-auto">
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="{{ route('settings.index') }}">
+                  <a class="nav-link d-flex align-items-center gap-2" href="{{ route('parametres.index') }}">
                     <svg class="bi" aria-hidden="true">
                       <use xlink:href="#gear-wide-connected"></use>
                     </svg>

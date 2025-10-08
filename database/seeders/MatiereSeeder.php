@@ -1,52 +1,51 @@
 <?php
 
 namespace Database\Seeders;
+
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Seeder;
-use App\Models\Matiere; // Assurez-vous d'avoir bien importé le modèle Matiere
-use Illuminate\Support\Facades\DB; // Optionnel si vous utilisez DB::table
+use App\Models\Matiere;
+use Illuminate\Support\Facades\DB;
 
 class MatiereSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-   public function run(): void
+    public function run(): void
     {
-        // --- NOUVEAU CODE IMPORTANT ---
-        // Désactive temporairement la vérification des clés étrangères (OBLIGATOIRE pour TRUNCATE)
+        // 1. Désactiver la vérification des clés étrangères (pour TRUNCATE)
         if (config('database.default') !== 'sqlite') {
             Schema::disableForeignKeyConstraints();
         }
         
-        // Vider la table avant de la remplir pour éviter les doublons
-        Matiere::truncate(); // Cette ligne fonctionnera maintenant
+        // 2. Vider la table 'matieres' pour un nouvel ensemencement propre
+        Matiere::truncate();
         
-        // --- FIN DU NOUVEAU CODE ---
-
-
-        // Définition des matières (votre tableau existant)
-       // ...
+        // 3. Définition des matières (AJOUT DE CONDUITE)
         $matieres = [
+            // Matières principales
             ['nom' => 'Mathématiques', 'coefficient' => 4],
             ['nom' => 'Français', 'coefficient' => 2],
-            ['nom' => 'Anglais', 'coefficient' => 2], // <-- EST-CE QUE CELLE-CI EST LÀ ?
+            ['nom' => 'Anglais', 'coefficient' => 2],
             ['nom' => 'Physique-Chimie', 'coefficient' => 4],
             ['nom' => 'Histoire-Géographie', 'coefficient' => 2],
             ['nom' => 'SVT', 'coefficient' => 4],
-            ['nom' => 'EPS', 'coefficient' => 1], // <-- ET CELLE-CI ?
             ['nom' => 'Informatique', 'coefficient' => 1],
             ['nom' => 'Philosophie', 'coefficient' => 2],
+            ['nom' => 'EPS', 'coefficient' => 1],
 
+            // Matière spéciale pour la fiche de CONDUITE
+            // 🚨 Il est essentiel que cette matière soit là pour les fiches de conduite
+            ['nom' => 'CONDUITE', 'coefficient' => 1], 
         ];
-// ...
-        // Insertion des données dans la base de données
+
+        // 4. Insertion des données
         foreach ($matieres as $matiere) {
             Matiere::create($matiere);
         }
 
-        // --- NOUVEAU CODE IMPORTANT ---
-        // Réactive la vérification des clés étrangères
+        // 5. Réactiver la vérification des clés étrangères
         if (config('database.default') !== 'sqlite') {
             Schema::enableForeignKeyConstraints();
         }

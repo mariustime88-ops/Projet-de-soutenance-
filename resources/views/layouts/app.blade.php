@@ -14,7 +14,18 @@
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-    
+    <script>
+    // Script d'application du thème (Doit être exécuté avant le chargement du CSS/JS)
+    (function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-bs-theme');
+        }
+    })();
+</script>
+{{-- Le reste de votre code <head> (CSS, Bootstrap, etc.) --}}
 </head>
 <body>
     <div id="app">

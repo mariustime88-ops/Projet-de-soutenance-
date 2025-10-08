@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Enfant;
+// Assurez-vous d'importer le modèle Recu
+use App\Models\Recu; 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -42,11 +44,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-    public function recus()
-{
-    return $this->hasMany(Recu::class);
-}
- public function enfants()
+   public function recus()
+    {
+        // Un utilisateur (parent) peut avoir plusieurs reçus
+        return $this->hasMany(Recu::class);
+    }
+
+    // Gardons la relation enfants car vous l'utilisez
+    public function enfants()
     {
         return $this->hasMany(Enfant::class);
     }

@@ -1,123 +1,78 @@
-@extends('layouts.app')
-
-{{-- Inclure FontAwesome pour les icônes et ajouter quelques styles personnalisés pour l'esthétique --}}
-@section('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        /* Effet de survol sur les cartes */
-        .card:hover {
-            transform: translateY(-5px) !important;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-        }
-        /* Style du bouton d'action principal (télécharger tout) */
-        .main-action-button {
-            transition: all 0.3s ease;
-            background-color: #28a745; /* Vert Success */
-            border-color: #28a745;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-weight: bold;
-        }
-        .main-action-button:hover {
-            transform: scale(1.05);
-            background-color: #218838;
-            border-color: #1e7e34;
-            box-shadow: 0 8px 12px rgba(40, 167, 69, 0.4);
-        }
-    </style>
-@endsection
+@extends('layouts.app') 
+{{-- NOTE : Ajustez 'layouts.app' si vous utilisez un autre fichier de mise en page --}}
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        {{-- Barre latérale (conservée de votre code original, mais commentée si votre layout principal la gère) --}}
-        {{-- Si vous utilisez un layout Bootstrap standard, la sidebar pourrait être redondante ici, mais je la garde pour la structure. --}}
-        <nav class="col-md-2 d-none d-md-block sidebar">
-            <div class="sidebar-sticky">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}">Accueil</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('recus.index') }}">Prendre son reçu</a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
 
-        {{-- Contenu principal --}}
-        <main role="main" class="col-md-10 ml-sm-auto col-lg-10 px-4 content d-flex justify-content-center align-items-center flex-column">
+<div class="container py-4">
+   <center> <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-chevron-left mr-2"></i> Retour à la sélection
+                </a></center>
+    <h2 class="text-center mb-4 text-primary">Mes Reçus de Scolarité</h2>
+    <p class="text-center text-muted">Téléchargez vos documents officiels en toute sécurité pour chaque enfant inscrit.</p>
+    
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    
+    {{-- Bouton TÉLÉCHARGER TOUS (ZIP) --}}
+    <div class="text-center mb-5">
+        <a href="{{ route('recus.download.all') }}" class="btn btn-success btn-lg shadow-sm" style="animation: pulse 1s infinite;">
+            <i class="fas fa-download me-2"></i> TÉLÉCHARGER TOUS les Reçus (ZIP)
+        </a>
+    </div>
+
+    {{-- GRILLE des Reçus Individuels --}}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        
+        @forelse($recus as $recu)
+        <div class="col">
             
-            <h1 class="mt-4 text-center text-primary font-weight-bolder">Mes Reçus de Scolarité</h1>
-            <p class="lead text-center text-secondary mb-5">
-                <i class="fas fa-lock text-success mr-2"></i> Téléchargez vos documents officiels en toute sécurité.
-            </p>
+            {{-- Effet d'animation simple au survol (utilisation de classes Bootstrap Card) --}}
+            <div class="card h-100 shadow-sm border-info transform-on-hover">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-info"><i class="fas fa-file-pdf me-2"></i> Reçu : {{ $recu->tranche }}</h5>
+                    <hr>
+                    
+                    {{-- Affichage des informations --}}
+                    <p class="mb-1"><strong>Enfant :</strong> {{ optional($recu->enfant)->prenom }} {{ optional($recu->enfant)->nom }}</p>
+                    <p class="mb-1"><strong>Date de Dépôt :</strong> {{ $recu->created_at ? $recu->created_at->format('d/m/Y') : 'Date non disponible' }}</p>
+                    <p class="mb-3"><strong>Fichier :</strong> {{ $recu->nom_fichier }}</p>
 
-            {{-- Affichage des messages flash (Succès/Erreur) --}}
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show w-75 mx-auto" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show w-75 mx-auto" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            @endif
-
-            {{-- BOUTON PRINCIPAL POUR TOUT TÉLÉCHARGER (Visible seulement s'il y a des reçus) --}}
-            @if ($recus->isNotEmpty())
-                <div class="mb-5 w-100 text-center">
-                    <a href="{{ route('recus.download.all') }}" class="btn btn-success btn-lg main-action-button text-white">
-                        <i class="fas fa-file-archive mr-2"></i> Télécharger TOUS les Reçus (ZIP)
-                    </a>
-                </div>
-            @endif
-
-
-            <div class="row mt-4 w-100 justify-content-center">
-                @forelse ($recus as $recu)
-                    {{-- Utilisation de col-md-4 pour un affichage sur 3 colonnes sur desktop --}}
-                    <div class="col-md-4 col-sm-6 mb-4">
-                        <div class="card h-100 shadow border-success rounded-lg" style="transition: transform 0.3s ease-in-out;">
-                            <div class="card-body d-flex flex-column align-items-center p-4">
-                                <div class="mb-3 text-center">
-                                    {{-- Icône PDF en rouge --}}
-                                    <i class="fas fa-file-pdf fa-5x text-danger"></i>
-                                </div>
-                                <h5 class="card-title text-center text-dark font-weight-bold mb-1">
-                                    {{-- Affichage de la tranche --}}
-                                    Reçu : {{ $recu->tranche }}
-                                </h5>
-                                <p class="card-text text-muted text-center mb-3 small">
-                                    Fichier: {{ $recu->nom_fichier }}
-                                </p>
-                                <p class="card-text text-secondary text-center mb-4 small">
-                                    Date de dépôt: {{ $recu->created_at?->format('d/m/Y') ?? 'N/A' }}
-                                </p>
-                                <a href="{{ route('recus.download', ['recu' => $recu->id]) }}" class="btn btn-primary btn-block">
-                                    <i class="fas fa-download mr-1"></i> Télécharger la {{ $recu->tranche }}
-                                </a>
-                            </div>
-                        </div>
+                    {{-- Lien de Téléchargement Individuel (Fonctionnel avec la bonne DB) --}}
+                    <div class="mt-auto text-center">
+                        <a href="{{ route('recus.download.single', $recu->id) }}" class="btn btn-primary w-75">
+                            <i class="fas fa-arrow-alt-circle-down me-1"></i> Télécharger le Reçu
+                        </a>
                     </div>
-                @empty
-                    {{-- Message si aucun reçu n'est disponible --}}
-                    <div class="col-12 text-center mt-5">
-                        <div class="alert alert-info py-4" role="alert" style="border-left: 5px solid #007bff; max-width: 600px; margin: auto;">
-                            <i class="fas fa-info-circle fa-2x d-block mb-2"></i> 
-                            <h4 class="alert-heading">Aucun reçu disponible pour le moment.</h4>
-                            <p>Dès qu'un reçu de scolarité sera téléversé pour votre compte, il apparaîtra ici.</p>
-                        </div>
-                    </div>
-                @endforelse
+                </div>
             </div>
-        </main>
+        </div>
+        @empty
+        <div class="col-12">
+            <div class="alert alert-warning text-center" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i> Aucun reçu de scolarité n'est encore disponible pour vos enfants.
+            </div>
+        </div>
+        @endforelse
     </div>
 </div>
+
+<style>
+/* 🚨 Si vous utilisez Bootstrap, ces classes peuvent fonctionner */
+.transform-on-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.transform-on-hover:hover {
+    transform: translateY(-5px); /* Animation au survol */
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important; /* Ombre plus prononcée */
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+</style>
 @endsection

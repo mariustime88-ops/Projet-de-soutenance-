@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User; // Importez le modèle User
+use App\Models\Enfant; // Importez le modèle Enfant
 
 class DatabaseSeeder extends Seeder
 {
@@ -11,13 +13,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-       // Supprimez toutes les autres instances de $this->call([...])
-        // et n'utilisez que la structure suivante :
+        // Exécute les seeders dans l'ordre de dépendance
         $this->call([
-             // UserSeeder::class, // Décommentez si vous voulez recréer des utilisateurs
-             MatiereSeeder::class,      // Pour remplir la table des matières
-             NoteTestSeeder::class,     // Pour insérer des notes de test 
-             ]);
+            // UserSeeder::class,     // Si vous avez un seeder pour l'utilisateur
+            MatiereSeeder::class,       // Doit être exécuté avant les notes
+            // EnfantSeeder::class,   // Si vous avez un seeder pour les enfants
+            // NoteTestSeeder::class, // Pour insérer des notes de test après les matières
+        ]);
+
+        // 🚨 SI VOUS N'AVEZ PAS DE USER SEEDER, créez l'utilisateur parent manuellement pour vous reconnecter
+        // User::factory()->create([
+        //     'name' => 'TIME Marius Mahougnon',
+        //     'email' => 'mariustime88@gmail.com',
+        // ]);
     }
-    
 }

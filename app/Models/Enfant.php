@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\Recu; 
 class Enfant extends Model
 {
     use HasFactory;
@@ -122,4 +122,10 @@ class Enfant extends Model
             ];
         }
     }
+        public function recus()
+    {
+        // Un enfant peut avoir plusieurs reçus (pour différentes tranches)
+        return $this->hasMany(Recu::class);
+    }
+
 }
