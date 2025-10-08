@@ -15,8 +15,9 @@ use App\Http\Controllers\NoteController;
  use App\Http\Controllers\CompositionController;
 use App\Http\Controllers\EmploiDuTempsController;
 use App\Http\Controllers\ExamenFraisController;
-
 use App\Http\Controllers\ParametresController;
+
+use App\Http\Controllers\ExamenController;
 
 
 /*
@@ -51,6 +52,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/recus/upload', [RecuController::class, 'create'])->name('recus.upload.create');
     Route::post('/recus/upload', [RecuController::class, 'store'])->name('recus.upload.store');
 
+   // 1. Page d'accueil des informations sur les examens
+    Route::get('/examens', [ExamenController::class, 'index'])->name('examens.index');
+    
+    // 2. Page concernant les candidats (Admissibilité, procédures)
+    Route::get('/examens/candidats', [ExamenController::class, 'candidats'])->name('examens.candidats');
+    
+    // 3. Page des frais d'examens (Paiement, reçus spécifiques)
+    Route::get('/examens/frais', [ExamenController::class, 'frais'])->name('examens.frais');
+    
+    
 // Dans le groupe middleware(['auth'])->group(function () { ...
     
     // Ancien : Route::get('/conduite/{enfantId}', [App\Http\Controllers\ConduiteController::class, 'show'])->name('conduite.show');
@@ -84,7 +95,6 @@ Route::put('/enfants/{enfant}/update-photo', [EnfantController::class, 'updatePh
 // ... (vos autres routes) ...
 
 // Route pour la page Infos et Frais des Examens
-Route::get('/frais-examens', [ExamenFraisController::class, 'index'])->name('examens.index');
 
 
 Route::delete('/enfants/{enfant}', [EnfantController::class, 'destroy'])->name('enfants.destroy');

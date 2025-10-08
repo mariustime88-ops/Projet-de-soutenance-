@@ -1,245 +1,168 @@
-@extends('layouts.app')
+@extends('layouts.app') 
 
 @section('content')
-<div class="container mt-5">
+<div class="container py-5">
     
-    <div class="text-center mb-5 animate__animated animate__fadeInDown">
-        <h1 class="display-4 fw-bold text-secondary">Paramètres de l'Application ⚙️</h1>
-        <p class="lead text-muted">Gérez votre compte, vos préférences et les notifications.</p>
+    <div class="text-center mb-5">
+         <a href="{{ route('home') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Retour à l'Accueil
+                </a>
+        <h1 class="display-4 text-primary animate__fadeInDown">
+            <i class="fas fa-graduation-cap me-3"></i> Informations et Frais des Examens
+        </h1>
+        <p class="lead text-muted animate__fadeInUp">
+            Gérez et consultez les détails importants pour les examens officiels (CM2, 3ème et Tle).
+        </p>
     </div>
-
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn mb-4 shadow" role="alert">
-            <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
     
-    <div class="card shadow-lg border-0 animate__animated animate__fadeInUp">
-        <div class="card-body p-0">
+    <div class="row g-5">
+        
+        {{-- BLOC 1 : CONCERNANT LES CANDIDATS / ÉLIGIBILITÉ --}}
+        <div class="col-lg-6 animate__fadeInLeft">
+            <div class="card h-100 shadow-lg border-primary card-hover-effect">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="fas fa-user-check fa-2x me-3"></i>
+                    <h3 class="mb-0">Candidats et Procédures d'Inscription</h3>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text text-muted">
+                        Vérifiez les conditions d'éligibilité et les documents nécessaires pour la participation aux examens officiels.
+                    </p>
+                    
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Date limite d'inscription :
+                            <span class="badge bg-danger rounded-pill pulse-animation">30 Novembre 2025</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Examen(s) concerné(s) :
+                            <span class="badge bg-secondary">CEPE, BEPC & BAC</span>
+                        </li>
+                    </ul>
+
+                    <div class="mt-auto text-center">
+                        <a href="{{ route('examens.candidats') }}" class="btn btn-outline-primary btn-lg w-75">
+                            <i class="fas fa-search me-2"></i> Consulter l'éligibilité
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- BLOC 2 : FRAIS ET PAIEMENTS (MAJ avec CM2) --}}
+        <div class="col-lg-6 animate__fadeInRight">
+            <div class="card h-100 shadow-lg border-success card-hover-effect">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="fas fa-money-check-alt fa-2x me-3"></i>
+                    <h3 class="mb-0">Gestion des Frais d'Examens</h3>
+                </div>
+                {{-- ... Bloc Gestion des Frais d'Examens ... --}}
+
+<div class="card-body d-flex flex-column">
+    <p class="card-text text-muted">
+        Détails des montants et statut de paiement pour les examens (CM2, 3ème, Tle).
+    </p>
+    
+    <table class="table table-sm table-borderless table-responsive mb-4">
+        <thead class="bg-light">
+            <tr>
+                <th>Examen</th>
+                <th>Montant</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($fraisExamens as $frais)
+            <tr>
+                <td>**{{ $frais['examen'] }}**</td>
+                <td class="fw-bold text-info">{{ number_format($frais['montant'], 0, ',', ' ') }} F CFA</td>
+                <td>
+                    {{-- 🚨 LOGIQUE MISE À JOUR POUR LA COULEUR DU STATUT --}}
+                    @php
+                        $badgeClass = 'secondary';
+                        if ($frais['statut'] == 'Payé') {
+                            $badgeClass = 'success';
+                        } elseif ($frais['statut'] == 'Doit être payé') {
+                            $badgeClass = 'danger'; // Rouge pour l'action requise
+                        } else {
+                            $badgeClass = 'warning text-dark'; // Jaune pour "En Attente" ou autre
+                        }
+                    @endphp
+                    <span class="badge bg-{{ $badgeClass }} {{ $frais['statut'] == 'Doit être payé' ? 'pulse-animation' : '' }}">
+                        {{ $frais['statut'] }}
+                    </span>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    
+    <div class="mt-auto text-center">
+         <a href="{{ route('examens.frais') }}" class="btn btn-success btn-lg w-75">
+            <i class="fas fa-hand-holding-usd me-2"></i> Gérer/Payer les Frais
+        </a>
+    </div>
+</div>
+
+{{-- ... Reste de la vue ... --}}
+    {{-- Section Documents de Référence (MAJ pour afficher par classe) --}}
+    <div class="row mt-5 animate__fadeInUp">
+        <div class="col-12">
+             <h3 class="text-secondary mb-3 border-bottom pb-2">
+                <i class="fas fa-folder-open me-2"></i> Documents à Constituer par Examen
+            </h3>
             
-            <ul class="list-group list-group-flush">
-                
-                {{-- SECTION 1: Compte et Profil --}}
-                <li class="list-group-item list-item-effect d-flex justify-content-between align-items-center" data-bs-toggle="modal" data-bs-target="#profileModal">
-                    <div>
-                        <i class="fas fa-user-circle fa-lg text-primary me-3"></i>
-                        <span class="fw-bold">Compte</span>
-                        <p class="mb-0 text-muted small">Nom d'utilisateur, changer le mot de passe, informations personnelles.</p>
-                    </div>
-                    <i class="fas fa-chevron-right text-muted"></i>
-                </li>
-
-                {{-- SECTION 2: Thème (Discussion/Affichage) --}}
-                <li class="list-group-item list-item-effect d-flex justify-content-between align-items-center" data-bs-toggle="modal" data-bs-target="#themeModal">
-                    <div>
-                        <i class="fas fa-palette fa-lg text-secondary me-3"></i>
-                        <span class="fw-bold">Affichage & Thème</span>
-                        <p class="mb-0 text-muted small">Mode clair/sombre, taille du texte.</p>
-                    </div>
-                    <i class="fas fa-chevron-right text-muted"></i>
-                </li>
-
-                {{-- SECTION 3: Notifications --}}
-                <li class="list-group-item list-item-effect d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="fas fa-bell fa-lg text-warning me-3"></i>
-                        <span class="fw-bold">Notifications</span>
-                        <p class="mb-0 text-muted small">Sonneries, alertes de nouvelles notes ou de composition.</p>
-                    </div>
-                    <div class="form-check form-switch me-2">
-                        <input class="form-check-input" type="checkbox" id="notificationSwitch" checked>
-                        <label class="form-check-label visually-hidden" for="notificationSwitch">Activer/Désactiver</label>
-                    </div>
-                </li>
-
-                {{-- SECTION 4: Langue --}}
-                <li class="list-group-item list-item-effect d-flex justify-content-between align-items-center" data-bs-toggle="modal" data-bs-target="#langueModal">
-                    <div>
-                        <i class="fas fa-language fa-lg text-info me-3"></i>
-                        <span class="fw-bold">Langue de l'Application</span>
-                        <p class="mb-0 text-muted small">Français (Langue du système).</p>
-                    </div>
-                    <i class="fas fa-chevron-right text-muted"></i>
-                </li>
-
-            </ul>
-            
-        </div>
-    </div>
-</div>
-
-{{-- ========================================================== --}}
-{{-- MODALS pour les actions --}}
-{{-- ========================================================== --}}
-
-{{-- Modal 1: Compte / Changer Mot de Passe (INCHANGÉ) --}}
-<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content animate__animated animate__zoomIn">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="profileModalLabel"><i class="fas fa-key me-2"></i> Modifier le Mot de Passe</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('parametres.update.password') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="current_password" class="form-label">Mot de passe actuel</label>
-                        <input type="password" class="form-control @error('current_password') is-invalid @enderror" id="current_password" name="current_password" required>
-                        @error('current_password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_password" class="form-label">Nouveau mot de passe</label>
-                        <input type="password" class="form-control @error('new_password') is-invalid @enderror" id="new_password" name="new_password" required minlength="8">
-                        @error('new_password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_password_confirmation" class="form-label">Confirmer le nouveau mot de passe</label>
-                        <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
+            <div class="accordion" id="accordionDocuments">
+                @foreach($documentsParExamen as $examen => $documents)
+                <div class="accordion-item shadow-sm mb-2">
+                    <h2 class="accordion-header" id="heading{{ Str::slug($examen) }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ Str::slug($examen) }}" aria-expanded="false" aria-controls="collapse{{ Str::slug($examen) }}">
+                            <i class="fas fa-file-pdf me-3 text-{{ $loop->first ? 'primary' : ($loop->last ? 'danger' : 'success') }}"></i> Dossier {{ $examen }}
+                        </button>
+                    </h2>
+                    <div id="collapse{{ Str::slug($examen) }}" class="accordion-collapse collapse" aria-labelledby="heading{{ Str::slug($examen) }}" data-bs-parent="#accordionDocuments">
+                        <div class="accordion-body">
+                            <ul class="list-group list-group-flush">
+                                @foreach($documents as $doc)
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="fas fa-dot-circle me-3 text-muted"></i> {{ $doc }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <div class="mt-3 text-end">
+                                <a href="#" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-download me-1"></i> Télécharger la Fiche d'Infos
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{{-- Modal 2: Thème (CORRIGÉ ET FONCTIONNEL) --}}
-<div class="modal fade" id="themeModal" tabindex="-1" aria-labelledby="themeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content animate__animated animate__zoomIn">
-            <div class="modal-header bg-secondary text-white">
-                <h5 class="modal-title" id="themeModalLabel"><i class="fas fa-palette me-2"></i> Choisir le Thème</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-theme" data-theme="light" id="theme-light">
-                        <i class="fas fa-sun me-1"></i> Mode Clair
-                    </button>
-                    <button type="button" class="btn btn-theme" data-theme="dark" id="theme-dark">
-                        <i class="fas fa-moon me-1"></i> Mode Sombre
-                    </button>
-                </div>
-                <p class="mt-3 text-muted">Le thème choisi sera conservé pour vos prochaines visites.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Modal 3: Langue (SIMULATION) --}}
-<div class="modal fade" id="langueModal" tabindex="-1" aria-labelledby="langueModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content animate__animated animate__zoomIn">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="langueModalLabel"><i class="fas fa-language me-2"></i> Changer la Langue</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <select class="form-select">
-                    <option selected>Français (Système)</option>
-                    <option>Anglais</option>
-                </select>
-                <p class="mt-2 text-muted small">L'implémentation de la langue nécessite la configuration d'Internationalisation de Laravel.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                @endforeach
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    /* Styles pour simuler l'interface mobile */
-    .list-group-item {
-        padding: 15px 20px;
-        cursor: pointer;
-    }
-    .list-item-effect {
-        transition: background-color 0.2s, transform 0.2s;
-        border-left: 5px solid transparent;
-    }
-    .list-item-effect:hover {
-        background-color: var(--bs-light); 
-        transform: translateX(5px);
-        border-left: 5px solid var(--bs-primary);
-    }
-    
-    /* Styles pour les boutons de thème */
-    .btn-theme {
-        flex-grow: 1;
-        border: 1px solid var(--bs-secondary);
-        color: var(--bs-secondary);
-        background-color: transparent;
-    }
-    .btn-theme.active {
-        background-color: var(--bs-primary);
-        color: var(--bs-white);
-        border-color: var(--bs-primary);
-    }
+/* Styles et Animations (maintenus) */
+.card-hover-effect { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.card-hover-effect:hover { transform: translateY(-8px); box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.2) !important; }
+.pulse-animation { animation: pulse 2s infinite; }
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+/* Styles d'animation simulés */
+.animate__fadeInDown { animation: fadeInDown 1s ease-out; }
+.animate__fadeInUp { animation: fadeInUp 1s ease-out; }
+.animate__fadeInLeft { animation: fadeInLeft 1s ease-out; }
+.animate__fadeInRight { animation: fadeInRight 1s ease-out; }
+
+@keyframes fadeInDown { from { opacity: 0; transform: translate3d(0, -20px, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translate3d(0, 20px, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+@keyframes fadeInLeft { from { opacity: 0; transform: translate3d(-20px, 0, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+@keyframes fadeInRight { from { opacity: 0; transform: translate3d(20px, 0, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
 </style>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const themeToggles = document.querySelectorAll('.btn-theme');
-        const htmlElement = document.documentElement;
-
-        // 1. Fonction pour appliquer le thème
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                htmlElement.setAttribute('data-bs-theme', 'dark');
-            } else {
-                htmlElement.removeAttribute('data-bs-theme'); // Revient au mode light/par défaut
-            }
-            localStorage.setItem('theme', theme);
-            updateThemeButtons(theme);
-        }
-        
-        // 2. Fonction pour mettre à jour l'état des boutons dans le modal
-        function updateThemeButtons(currentTheme) {
-            themeToggles.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-theme') === currentTheme) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-
-        // 3. Charger le thème sauvegardé au démarrage
-        const savedTheme = localStorage.getItem('theme') || 'light'; 
-        applyTheme(savedTheme);
-
-        // 4. Écouteur d'événement pour le clic sur les boutons de thème
-        themeToggles.forEach(button => {
-            button.addEventListener('click', function() {
-                const newTheme = this.getAttribute('data-theme');
-                applyTheme(newTheme);
-            });
-        });
-        
-        // 5. Appliquer la classe 'active' quand le modal est ouvert (pour s'assurer que l'état est correct)
-        const themeModal = document.getElementById('themeModal');
-        themeModal.addEventListener('show.bs.modal', function() {
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            updateThemeButtons(currentTheme);
-        });
-
-        // Gestion des erreurs de validation (si le mot de passe est incorrect)
-        @if ($errors->any())
-            const profileModal = new bootstrap.Modal(document.getElementById('profileModal'));
-            profileModal.show();
-        @endif
-    });
-</script>
 @endsection
