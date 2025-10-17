@@ -2,139 +2,203 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\EnfantController;
+use App\Http\Controllers\Admin\EnfantController;
+use App\Http\Controllers\Admin\UserController; // <-- NOUVEAU
+// Contrôleurs Utilisateurs / Parents
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TDController;
 use App\Http\Controllers\AuthorizationController;
-// Assurez-vous d'avoir ceci en haut du fichier
 use App\Http\Controllers\RecommandationController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\RecuController;
 use App\Http\Controllers\NoteController;
-// ... autres routes
- use App\Http\Controllers\CompositionController;
+use App\Http\Controllers\CompositionController;
 use App\Http\Controllers\EmploiDuTempsController;
-use App\Http\Controllers\ExamenFraisController;
-use App\Http\Controllers\ParametresController;
-
 use App\Http\Controllers\ExamenController;
-
-
+use App\Http\Controllers\MatriculeController;
+use App\Http\Controllers\ParametresController;
+use App\Http\Controllers\EvenementController;
+use App\Http\Controllers\EnfantController as ParentEnfantController; // Alias pour le contrôleur Parent
+use App\Http\Controllers\ConduiteController;
+use App\Http\Controllers\Admin\MatiereController; // <<< AJOUTEZ CETTE LIGNE
+// Contrôleurs Administrateurs
+use App\Http\Controllers\Admin\EnfantController as AdminEnfantController; // Alias pour le contrôleur Admin
+use App\Http\Controllers\Admin\NooteController; // <<< AJOUTEZ CETTE LIGNE
+use App\Http\Controllers\Admin\RecuuController;
+use App\Http\Controllers\Parent\RecuParentController; 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 */
 
+// Routes Authentification
+Auth::routes();
+
+
+// =========================================================================
+// 1. ROUTES PUBLIQUES
+// =========================================================================
+
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Route qui va à la vue d'inscription des enfants
-// Elle est protégée pour que seuls les utilisateurs connectés puissent y accéder
+
+// =========================================================================
+// 2. ROUTES PARENTS/UTILISATEURS (Protégées par 'auth')
+// =========================================================================
+
 Route::middleware(['auth'])->group(function () {
-    Route::get('/enfants/create', [EnfantController::class, 'create'])->name('enfants.create');
-    Route::post('/enfants/store', [EnfantController::class, 'store'])->name('enfants.store');
-    Route::get('/enfants', [EnfantController::class, 'index'])->name('enfants.index');
-    Route::get('/enfants/{enfant}/edit', [EnfantController::class, 'edit'])->name('enfants.edit');
-    Route::put('/enfants/{enfant}', [EnfantController::class, 'update'])->name('enfants.update');
-    Route::delete('/enfants/{enfant}', [EnfantController::class, 'destroy'])->name('enfants.destroy');
-// Page d'accueil des reçus (Liste pour le parent)
+
+    // Page d'accueil principale
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+    // Route de test pour la modale matricule (si nécessaire)
+    Route::get('/matricule', [HomeController::class, 'showMatricules'])->name('partials.matricule_modal');
+    
+    // ------------------------------------
+    // Gestion des Enfants par le Parent (CRUD)
+    // ------------------------------------
+    Route::get('/enfants/create', [ParentEnfantController::class, 'create'])->name('enfants.create');
+    Route::post('/enfants/store', [ParentEnfantController::class, 'store'])->name('enfants.store');
+    Route::get('/enfants', [ParentEnfantController::class, 'index'])->name('enfants.index');
+    Route::get('/enfants/{enfant}', [ParentEnfantController::class, 'show'])->name('enfants.show');
+    Route::get('/enfants/{enfant}/edit', [ParentEnfantController::class, 'edit'])->name('enfants.edit');
+    Route::put('/enfants/{enfant}', [ParentEnfantController::class, 'update'])->name('enfants.update');
+    Route::delete('/enfants/{enfant}', [ParentEnfantController::class, 'destroy'])->name('enfants.destroy');
+    Route::put('/enfants/{enfant}/update-photo', [ParentEnfantController::class, 'updatePhoto'])->name('enfants.updatePhoto');
+
+
+    // ------------------------------------
+    // Consultation
+    // ------------------------------------
+    
+    // Notes
+    Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
+    Route::get('/notes/{enfant}', [NoteController::class, 'show'])->name('notes.show');
+
+    // Emploi du temps
+    Route::get('/emploi-du-temps', [EmploiDuTempsController::class, 'index'])->name('emploi_du_temps.index');
+    Route::get('/emploi-du-temps/show', [EmploiDuTempsController::class, 'show'])->name('emploi_du_temps.show');
+
+    // Conduite
+    Route::get('/conduite', [ConduiteController::class, 'index'])->name('conduite.index');
+    Route::get('/conduite/{enfantId}', [ConduiteController::class, 'show'])->name('conduite.show');
+
+    // Réception de Reçus
     Route::get('/recus', [RecuController::class, 'index'])->name('recus.index');
-    
-    // Téléchargement d'un reçu individuel
     Route::get('/recus/{id}/download', [RecuController::class, 'download'])->name('recus.download.single');
-    
-    // Téléchargement de tous les reçus en ZIP
     Route::get('/recus/download-all', [RecuController::class, 'downloadAllUserRecus'])->name('recus.download.all');
-
-    // [ADMIN] Formulaire d'upload des reçus
-    Route::get('/recus/upload', [RecuController::class, 'create'])->name('recus.upload.create');
-    Route::post('/recus/upload', [RecuController::class, 'store'])->name('recus.upload.store');
-
-   // 1. Page d'accueil des informations sur les examens
-    Route::get('/examens', [ExamenController::class, 'index'])->name('examens.index');
     
-    // 2. Page concernant les candidats (Admissibilité, procédures)
-    Route::get('/examens/candidats', [ExamenController::class, 'candidats'])->name('examens.candidats');
-    
-    // 3. Page des frais d'examens (Paiement, reçus spécifiques)
+    // Paiement / Frais
+    Route::get('/paiement', [PaiementController::class, 'index'])->name('paiement.index');
     Route::get('/examens/frais', [ExamenController::class, 'frais'])->name('examens.frais');
     
+    // Matricule (utilisé si une route est absolument nécessaire)
+    Route::get('/matricules', [MatriculeController::class, 'index'])->name('matricules.index');
+
+
+    // ------------------------------------
+    // Autres Pages et Paramètres
+    // ------------------------------------
+    Route::get('/parametres', [ParametresController::class, 'index'])->name('parametres.index');
+    Route::post('/parametres/update-password', [ParametresController::class, 'updatePassword'])->name('parametres.update.password');
+
+    Route::get('/composition', [CompositionController::class, 'index'])->name('composition.index');
+    Route::get('/evenements', [EvenementController::class, 'index'])->name('evenements.index');
+    Route::get('/examens', [ExamenController::class, 'index'])->name('examens.index');
+    Route::get('/examens/candidats', [ExamenController::class, 'candidats'])->name('examens.candidats');
+    Route::get('/td-enfants', [TDController::class, 'index'])->name('td.index');
+    Route::get('/recommandation', [RecommandationController::class, 'index'])->name('recommandation.index');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/update', [SettingsController::class, 'update'])->name('settings.update');
+    Route::get('/autorisation', [AuthorizationController::class, 'index'])->name('autorisation.index');
+
+}); // <--- FIN du groupe middleware(['auth']) pour les Parents
+
+
+// =========================================================================
+// 3. ROUTES ADMINISTRATEUR (CORRECTION DE L'ERREUR D'ACCOLADE)
+// =========================================================================
+
+// =========================================================================
+// 3. ROUTES ADMINISTRATEUR (Protégées par 'auth' et 'admin' middleware)
+// =========================================================================
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     
-// Dans le groupe middleware(['auth'])->group(function () { ...
+    // Tableau de bord
+    Route::get('/', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
+
+    // Gestion des Enfants/Élèves (CRUD)
+    Route::resource('enfants', AdminEnfantController::class); // Utilise l'ALIAS AdminEnfantController
+
+    // Gestion des Utilisateurs (Parents)
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
-    // Ancien : Route::get('/conduite/{enfantId}', [App\Http\Controllers\ConduiteController::class, 'show'])->name('conduite.show');
+   // 5. Gestion des Reçus (Recuus)
+    // Nous excluons 'show', 'edit', 'update' car c'est un CRUD de fichiers simple
+    Route::resource('recuus', RecuuController::class)->except(['show', 'edit', 'update']);
+    
+    // Route de téléchargement spécifique
+    Route::get('recuus/{recuu}/download', [RecuuController::class, 'download'])->name('recuus.download');
+}); // <--- FIN du groupe middleware(['auth', 'admin'])
+// =========================================================================
+// 4. ROUTES QUI ÉTAIENT EN DEHORS
+// =========================================================================
 
-    // NOUVEAU : 1. Page de sélection des enfants
-    Route::get('/conduite', [App\Http\Controllers\ConduiteController::class, 'index'])->name('conduite.index');
-
-    // NOUVEAU : 2. Affichage de la fiche de conduite
-    Route::get('/conduite/{enfantId}', [App\Http\Controllers\ConduiteController::class, 'show'])->name('conduite.show');
-
-   // ... (vos autres routes) ...
-
-// Routes pour la page Paramètres
-Route::get('/parametres', [ParametresController::class, 'index'])->name('parametres.index');
-Route::post('/parametres/update-password', [ParametresController::class, 'updatePassword'])->name('parametres.update.password');
+// Ces routes étaient hors de tous les groupes, je les laisse ici si elles ne nécessitent pas 'auth'
+// Route::put('/enfants/{enfant}/update-photo', [EnfantController::class, 'updatePhoto'])->name('enfants.updatePhoto'); 
+// NOTE: Cette route est maintenant dans le groupe 'auth' avec l'alias ParentEnfantController.
+// Routes Admin pour la gestion des reçus
 
 
-// ... (vos autres routes) ...
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    
+    // ... Routes existantes (dashboard, enfants) ...
 
-// Route pour la page de composition
-Route::get('/composition', [CompositionController::class, 'index'])->name('composition.index');
-// ...
+    // 3. Gestion des Matières <<< NOUVELLE LIGNE
+    Route::resource('matieres', MatiereController::class);
+    
+    // 4. Gestion des Notes (prête à être utilisée une fois les matières créées)
+    // Route::resource('notes', App\Http\Controllers\Admin\NoteController::class);
 
+    // ...
 });
-    
-// Route pour la mise à jour de la photo d'un enfant
-Route::put('/enfants/{enfant}/update-photo', [EnfantController::class, 'updatePhoto'])->name('enfants.updatePhoto');
-// ... (vos autres routes)
 
-
-// ... (vos autres routes) ...
-
-// Route pour la page Infos et Frais des Examens
-
-
-Route::delete('/enfants/{enfant}', [EnfantController::class, 'destroy'])->name('enfants.destroy');
-Route::get('/enfants/{enfant}', [EnfantController::class, 'show'])->name('enfants.show');
-Route::get('/td-enfants', [TDController::class, 'index'])->name('td.index');
-
-// Ajoutez cette route pour le bouton "Recommandation"
-Route::get('/recommandation', [RecommandationController::class, 'index'])->name('recommandation.index');
-
-Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
-
-
-
-
-// Route pour afficher la page de sélection de l'emploi du temps
-Route::get('/emploi-du-temps', [EmploiDuTempsController::class, 'index'])->name('emploi_du_temps.index');
-
-// Route pour charger le tableau de l'emploi du temps (souvent utilisé par AJAX)
-Route::get('/emploi-du-temps/show', [EmploiDuTempsController::class, 'show'])->name('emploi_du_temps.show');
-
-// Routes protégées pour les utilisateurs connectés
 Route::middleware(['auth'])->group(function () {
-    // ... toutes vos routes existantes ...
+    Route::get('/', function () {
+        return view('admin.dashboard'); // <<< POINTANT VERS LA NOUVELLE VUE
+    })->name('dashboard'); // <<< NOM DE ROUTE À UTILISER : admin.dashboard
     
-    // NOUVELLES ROUTES DES NOTES 
-    Route::get('/notes', [NoteController::class, 'index'])->name('notes.index'); // Liste des enfants
-    Route::get('/notes/{enfant}', [NoteController::class, 'show'])->name('notes.show'); // Affichage des notes
+    // Page d'index des reçus (URL: /recus)
+    Route::get('/recus', [RecuParentController::class, 'index'])->name('recus.index');
     
-    // ... autres routes existantes ...
+    // Route de téléchargement individuel sécurisé (Route::get('/recus/1/download') )
+    Route::get('/recus/{recu}/download', [RecuParentController::class, 'downloadSingle'])->name('recus.download.single');
+    
+    // Route de téléchargement de tous les reçus (ZIP)
+    Route::get('/recus/download/all', [RecuParentController::class, 'downloadAll'])->name('recus.download.all');
+
 });
 
 
 
-Route::get('/paiement', [PaiementController::class, 'index'])->name('paiement.index');
 
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    
+    // ... Routes existantes (dashboard, enfants, matieres) ...
 
-Route::post('/settings/update', [SettingsController::class, 'update'])->name('settings.update');
-// Ajoutez cette ligne pour la nouvelle route
-Route::get('/autorisation', [AuthorizationController::class, 'index'])->name('autorisation.index');
+    // 4. Gestion des Notes <<< NOUVELLE LIGNE
+    Route::resource('notes', NooteController::class);
 
-Auth::routes();
+    // ...
+});
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

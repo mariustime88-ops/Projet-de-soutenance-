@@ -3,53 +3,32 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\TdProgramme; // 🚨 Importez le modèle
 
 class TDController extends Controller
 {
+    /**
+     * Affiche la liste des TD (Travaux Dirigés) par niveau et filière depuis la base.
+     */
     public function index()
     {
-        $tds = [
-            [
-                'titre' => 'TD de Mathématiques - Probabilités',
-                'description' => 'Un ensemble d\'exercices sur les probabilités et statistiques.',
-                'classe' => 'Terminale',
-                'date' => '25/09/2025'
-            ],
-            [
-                'titre' => 'TD de Français - La dissertation',
-                'description' => 'Sujets et méthodes pour la dissertation littéraire.',
-                'classe' => 'Terminale',
-                'date' => '27/09/2025'
-            ],
-            [
-                'titre' => 'TD de Physique - Électricité',
-                'description' => 'Problèmes sur les circuits électriques et les lois de l\'électrocinétique.',
-                'classe' => 'Terminale',
-                'date' => '28/09/2025'
-            ],
-            [
-                'titre' => 'TD d\'Histoire - La Seconde Guerre Mondiale',
-                'description' => 'Questions sur les causes, le déroulement et les conséquences du conflit.',
-                'classe' => 'Troisième',
-                'date' => '26/09/2025'
-            ],
-            [
-                'titre' => 'TD de Sciences - Le cycle de l\'eau',
-                'description' => 'Explications et exercices sur le cycle naturel de l\'eau.',
-                'classe' => 'Troisième',
-                'date' => '29/09/2025'
-            ],
-            [
-                'titre' => 'TD d\'Anglais - L\'expression écrite',
-                'description' => 'Exercices de rédaction et de grammaire pour améliorer l\'écriture.',
-                'classe' => 'Troisième',
-                'date' => '30/09/2025'
-            ],
-        ];
+        // Récupération de tous les TD actifs, ordonnés par classe pour un meilleur affichage
+        $allTds = TdProgramme::where('is_active', true)
+                              ->orderBy('classe_niveau')
+                              ->orderBy('filiere')
+                              ->get();
 
-        $tdsTerminale = collect($tds)->where('classe', 'Terminale')->all();
-        $tdsTroisieme = collect($tds)->where('classe', 'Troisième')->all();
+        // 1. Groupement des TD pour le cycle Primaire (filiere est NULL)
+        $tdsPrimaire = $allTds->filter(function($td) {
+            return $td->filiere === null;
+        })->values();
 
-        return view('td.index', compact('tdsTerminale', 'tdsTroisieme'));
+        // 2. Groupement des TD pour le cycle Secondaire (filiere n'est pas NULL)
+        $tdsSecondaire = $allTds->filter(function($td) {
+            return $td->filiere !== null;
+        })->values();
+        
+        // Les vues recevront les objets du Modèle TdProgramme
+        return view('td.index', compact('tdsPrimaire', 'tdsSecondaire'));
     }
 }

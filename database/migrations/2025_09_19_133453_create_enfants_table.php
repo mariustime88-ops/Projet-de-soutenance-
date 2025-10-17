@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('adresse');
             $table->string('contact_urgence_nom');
             $table->string('contact_urgence_numero');
+              $table->string('matricule', 20)->nullable()->unique();
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); 
             $table->timestamps();
         });

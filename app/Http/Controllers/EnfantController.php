@@ -48,6 +48,9 @@ class EnfantController extends Controller
             'adresse' => 'required|string',
             'contact_urgence_nom' => 'required|string',
             'contact_urgence_numero' => 'required|string',
+
+
+            
         ]);
         
         $photoPath = null;
@@ -56,6 +59,7 @@ class EnfantController extends Controller
             $photoPath = $request->file('photo')->store('photos', 'public');
         }
 
+        // Le matricule sera généré automatiquement par le modèle Enfant grâce à l'événement 'creating'
         Enfant::create([
             'user_id' => Auth::id(), 
             'nom' => $request->nom,
@@ -74,7 +78,16 @@ class EnfantController extends Controller
             'contact_urgence_numero' => $request->contact_urgence_numero,
         ]);
 
-        return redirect()->back()->with('success', 'Inscription de l\'enfant réussie !');
+        return redirect()->back()->with('success', 'Inscription de l\'enfant réussie ! Un matricule unique a été attribué.');
+   
+   // Valider les données...
+
+    $enfant = new Enfant($request->all());
+    $enfant->user_id = auth()->id(); // Lier l'enfant à l'utilisateur actuel
+    // Le modèle génère le matricule automatiquement
+    $enfant->save();
+
+    return redirect()->route('enfants.index')->with('success', 'Enfant inscrit avec succès !');
     }
 
     /**

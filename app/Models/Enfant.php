@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Recu; 
+use Illuminate\Support\Facades\DB; // Ajouté pour les requêtes DB
+
 class Enfant extends Model
 {
     use HasFactory;
@@ -36,18 +38,62 @@ class Enfant extends Model
         'etat_sante',
         'note_conduite', // Stocke la note calculée
         'heures_colle',  // Entrée pour le calcul
+        'matricule',     // **<-- AJOUTÉ : Le matricule unique**
     ];
     
-    // Ajout du mutator pour le calcul automatique
+    // Ajout des mutators pour le calcul automatique et la génération du matricule
     protected static function booted()
     {
         static::saving(function ($enfant) {
-            // S'assure que la note_conduite est mise à jour avec la note calculée avant l'enregistrement
-            // Ceci est CRITIQUE pour que la moyenne générale soit toujours à jour.
+            // 1. Mise à jour de la note de conduite avant l'enregistrement (comme avant)
             $enfant->note_conduite = $enfant->getNoteFinaleCalculeeAttribute();
+        });
+
+        // 2. Génération du matricule uniquement lors de la CRÉATION
+        static::creating(function ($enfant) {
+            // S'assure qu'un matricule est généré seulement s'il n'existe pas déjà
+            if (empty($enfant->matricule)) {
+                $enfant->matricule = $enfant->generateMatricule();
+            }
         });
     }
 
+    /**
+     * Génère un matricule unique basé sur l'année, le sexe, la classe et un numéro séquentiel.
+     * Le format sera YYYY-SEXE-CLASSE-NNNN
+     * Exemple : 2023-F-CE1-0015
+     *
+     * @return string
+     */
+    protected function generateMatricule(): string
+    {
+        $annee = date('Y');
+        $sexe_code = strtoupper(substr($this->sexe, 0, 1)); // F ou M
+        $classe_code = strtoupper(str_replace([' ', '-', '.'], '', $this->classe)); // Ex: CE1, CP, TLEC
+
+        // Partie 1: Déterminer le compteur séquentiel pour l'année en cours
+        // Trouve le dernier matricule pour l'année
+        $latestEnfant = Enfant::where('matricule', 'like', $annee . '-%')
+                              ->orderBy('matricule', 'desc')
+                              ->first();
+
+        $sequentialNumber = 1;
+
+        if ($latestEnfant) {
+            // Exemple : '2025-M-CP-0010'
+            $parts = explode('-', $latestEnfant->matricule);
+            // Assurez-vous que le dernier élément existe et est un nombre
+            if (count($parts) > 3 && is_numeric(end($parts))) {
+                $lastNumber = end($parts);
+                $sequentialNumber = intval($lastNumber) + 1;
+            }
+        }
+
+        // Partie 2: Formatage final (NNNN sur 4 chiffres)
+        $sequentialString = str_pad($sequentialNumber, 4, '0', STR_PAD_LEFT);
+
+        return "{$annee}-{$sexe_code}-{$classe_code}-{$sequentialString}";
+    }
 
     public function user()
     {
@@ -127,5 +173,6 @@ class Enfant extends Model
         // Un enfant peut avoir plusieurs reçus (pour différentes tranches)
         return $this->hasMany(Recu::class);
     }
+    
 
 }
